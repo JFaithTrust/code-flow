@@ -91,6 +91,16 @@ const eslintConfig = [
       'better-tailwindcss/no-unregistered-classes': [
         'error',
         { ignore: ['prose', 'prose-sm', 'prose-lg', 'prose-invert'] },
+        {
+          whitelist: [
+            'custom-scrollbar',
+            'no-scrollbar',
+            'active-theme',
+            'mdxeditor-toolbar',
+            'hash-span',
+            'markdown',
+          ],
+        },
       ],
       'better-tailwindcss/no-conflicting-classes': 'error',
     },

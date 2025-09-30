@@ -3,6 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import MobileNavigation from './mobile.navigation';
 import { ModeToggle } from '../shared/mode-toggle';
 
 const Navbar = () => {
@@ -11,7 +12,7 @@ const Navbar = () => {
       <Link href={'/'} className="flex items-center gap-1">
         <Image src="/images/site-logo.svg" alt="CodeFlow Logo" width={23} height={23} />
         <p className="font-space-grotesk h2-bold text-dark100_light900 max-sm:hidden">
-          Code <span className="text-primary-500">Flow</span>
+          Code<span className="text-primary-500">Flow</span>
         </p>
       </Link>
 
@@ -19,6 +20,8 @@ const Navbar = () => {
 
       <div className="flex-between gap-5">
         <ModeToggle />
+
+        <MobileNavigation />
       </div>
     </nav>
   );
