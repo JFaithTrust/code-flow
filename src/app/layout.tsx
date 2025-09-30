@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 
 import './globals.css';
-import Navbar from '@/components/navigation/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({
@@ -38,7 +37,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
           {children}
         </ThemeProvider>
       </body>
