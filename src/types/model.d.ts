@@ -55,3 +55,15 @@ interface ITag {
   name: string;
   questions: number;
 }
+
+interface IInteraction {
+  user: Types.ObjectId;
+  action: string;
+  actionId: Types.ObjectId;
+  actionType: 'question' | 'answer';
+}
+
+interface ICollection {
+  author: Types.ObjectId;
+  question: Types.ObjectId;
+}
