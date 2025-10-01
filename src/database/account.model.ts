@@ -1,6 +1,8 @@
-import { model, models, Schema } from 'mongoose';
+import { model, models, Schema, Document } from 'mongoose';
 
 import { IAccount } from '@/types/model';
+
+export interface IAccountDocument extends IAccount, Document {}
 
 const AccountSchema = new Schema<IAccount>(
   {

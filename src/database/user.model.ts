@@ -1,6 +1,8 @@
-import { model, models, Schema } from 'mongoose';
+import { model, models, Schema, Document } from 'mongoose';
 
 import { IUser } from '@/types/model';
+
+export interface IUserDocument extends IUser, Document {}
 
 const UserSchema = new Schema<IUser>(
   {

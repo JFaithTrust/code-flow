@@ -1,6 +1,8 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, Document } from 'mongoose';
 
 import { ITag } from '@/types/model';
+
+export interface ITagDocument extends ITag, Document {}
 
 const TagSchema = new Schema<ITag>(
   {

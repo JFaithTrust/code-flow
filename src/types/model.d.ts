@@ -25,9 +25,9 @@ interface IQuestion {
   content: string;
   tags: Types.ObjectId[];
   views: number;
+  answers: number;
   upvotes: number;
   downvotes: number;
-  answers: number;
   author: Types.ObjectId;
 }
 
@@ -41,8 +41,8 @@ interface IAnswer {
 
 interface IVote {
   author: Types.ObjectId;
-  id: Types.ObjectId;
-  type: 'question' | 'answer';
+  actionId: Types.ObjectId;
+  actionType: 'question' | 'answer';
   voteType: 'upvote' | 'downvote';
 }
 

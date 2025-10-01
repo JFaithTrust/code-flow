@@ -1,6 +1,8 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, Document } from 'mongoose';
 
 import { ICollection } from '@/types/model';
+
+export interface ICollectionDocument extends ICollection, Document {}
 
 const CollectionSchema = new Schema<ICollection>(
   {

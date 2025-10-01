@@ -1,6 +1,8 @@
-import { model, models, Schema } from 'mongoose';
+import { model, models, Schema, Document } from 'mongoose';
 
 import { IAnswer } from '@/types/model';
+
+export interface IAnswerDocument extends IAnswer, Document {}
 
 const AnswerSchema = new Schema<IAnswer>(
   {
