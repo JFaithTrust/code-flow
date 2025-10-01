@@ -1,12 +1,15 @@
 'use client';
 
-import { sidebarLinks } from '@/constants';
-import { usePathname } from 'next/navigation';
 import React from 'react';
-import { SheetClose } from '../ui/sheet';
-import Link from 'next/link';
+
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+import { sidebarLinks } from '@/constants';
 import { cn } from '@/lib/utils';
+
+import { SheetClose } from '../ui/sheet';
 
 const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
   const pathname = usePathname();
@@ -20,6 +23,7 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
 
         if (link.route === '/profile') {
           if (!userId) return null;
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           `${link.route}/${userId}`;
         }
         const LinkComponent = (

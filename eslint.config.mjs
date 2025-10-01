@@ -90,9 +90,12 @@ const eslintConfig = [
       'better-tailwindcss/enforce-shorthand-classes': 'warn',
       'better-tailwindcss/no-unregistered-classes': [
         'error',
-        { ignore: ['prose', 'prose-sm', 'prose-lg', 'prose-invert'] },
         {
-          whitelist: [
+          ignore: [
+            'prose',
+            'prose-sm',
+            'prose-lg',
+            'prose-invert',
             'custom-scrollbar',
             'no-scrollbar',
             'active-theme',
