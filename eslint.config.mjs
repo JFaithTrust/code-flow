@@ -102,6 +102,7 @@ const eslintConfig = [
             'mdxeditor-toolbar',
             'hash-span',
             'markdown',
+            'dark-editor',
           ],
         },
       ],
