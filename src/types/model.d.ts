@@ -30,3 +30,11 @@ interface IQuestion {
   answers: number;
   author: Types.ObjectId;
 }
+
+interface IAnswer {
+  author: Types.ObjectId;
+  question: Types.ObjectId;
+  content: string;
+  upvotes: number;
+  downvotes: number;
+}
