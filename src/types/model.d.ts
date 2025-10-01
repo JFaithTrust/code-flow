@@ -19,3 +19,14 @@ interface IAccount {
   provider: string;
   providerAccountId: string;
 }
+
+interface IQuestion {
+  title: string;
+  content: string;
+  tags: Types.ObjectId[];
+  views: number;
+  upvotes: number;
+  downvotes: number;
+  answers: number;
+  author: Types.ObjectId;
+}
