@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 interface IUser {
   name: string;
   username: string;
@@ -7,4 +9,13 @@ interface IUser {
   location?: string;
   portfolio?: string;
   reputation?: number;
+}
+
+interface IAccount {
+  userId: Types.ObjectId;
+  name: string;
+  image?: string;
+  password?: string;
+  provider: string;
+  providerAccountId: string;
 }

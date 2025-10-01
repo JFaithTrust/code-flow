@@ -1,5 +1,7 @@
 import { model, models, Schema } from 'mongoose';
 
+import { IUser } from '@/types/model';
+
 const UserSchema = new Schema(
   {
     name: { type: String, required: true },
