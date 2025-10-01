@@ -2,7 +2,7 @@ import { model, models, Schema } from 'mongoose';
 
 import { IAccount } from '@/types/model';
 
-const AccountSchema = new Schema(
+const AccountSchema = new Schema<IAccount>(
   {
     userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
     name: { type: String, required: true },

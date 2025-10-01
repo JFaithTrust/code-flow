@@ -2,7 +2,7 @@ import { model, models, Schema } from 'mongoose';
 
 import { IAnswer } from '@/types/model';
 
-const AnswerSchema = new Schema(
+const AnswerSchema = new Schema<IAnswer>(
   {
     content: { type: String, required: true },
     question: { type: Schema.Types.ObjectId, ref: 'Question', required: true },

@@ -2,7 +2,7 @@ import { model, models, Schema } from 'mongoose';
 
 import { IQuestion } from '@/types/model';
 
-const QuestionSchema = new Schema(
+const QuestionSchema = new Schema<IQuestion>(
   {
     title: { type: String, required: true },
     content: { type: String, required: true },

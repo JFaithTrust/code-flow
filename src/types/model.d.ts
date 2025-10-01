@@ -38,3 +38,20 @@ interface IAnswer {
   upvotes: number;
   downvotes: number;
 }
+
+interface IVote {
+  author: Types.ObjectId;
+  id: Types.ObjectId;
+  type: 'question' | 'answer';
+  voteType: 'upvote' | 'downvote';
+}
+
+interface ITagQuestion {
+  question: Types.ObjectId;
+  tag: Types.ObjectId;
+}
+
+interface ITag {
+  name: string;
+  questions: number;
+}
