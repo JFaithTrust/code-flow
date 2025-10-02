@@ -2,7 +2,7 @@ import mongoose, { Mongoose } from 'mongoose';
 
 import logger from './logger';
 
-const MONGO_URI = process.env.MONGODB_URI as string;
+const MONGO_URI = process.env.NEXT_PUBLIC_MONGODB_URI as string;
 
 if (!MONGO_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
