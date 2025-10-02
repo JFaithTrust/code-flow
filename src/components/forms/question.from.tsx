@@ -4,10 +4,15 @@ import React from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MDXEditorMethods } from '@mdxeditor/editor';
+import { ReloadIcon } from '@radix-ui/react-icons';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import z from 'zod';
 
+import ROUTES from '@/constants/routes';
+import { createQuestion } from '@/lib/actions/question.action';
 import { AskQuestionSchema } from '@/lib/validation';
 
 import TagCard from '../cards/tag.card';
@@ -29,6 +34,7 @@ const Editor = dynamic(() => import('@/components/editor'), {
 
 const QuestionForm = () => {
   const editorRef = React.useRef<MDXEditorMethods>(null);
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(AskQuestionSchema),
@@ -39,8 +45,16 @@ const QuestionForm = () => {
     },
   });
 
-  const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-    console.log(data);
+  const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+    const result = await createQuestion(data);
+
+    if (result.success && result.data) {
+      toast.success('Question created successfully');
+
+      router.push(ROUTES.QUESTION(result.data._id as string));
+    } else {
+      toast.error(`Error ${result.status}: ${result.error?.message || 'Something went wrong'}`);
+    }
   };
 
   const handleInputKeyDown = (
@@ -169,7 +183,14 @@ const QuestionForm = () => {
         />
         <div className="mt-16 flex justify-end">
           <Button type="submit" className="text-light-900 primary-gradient">
-            Ask a Question
+            {form.formState.isSubmitting ? (
+              <>
+                <ReloadIcon className="mr-2 size-4 animate-spin" />
+                <span>Submitting</span>
+              </>
+            ) : (
+              <>Ask A Question</>
+            )}
           </Button>
         </div>
       </form>

@@ -70,7 +70,7 @@ interface ICollection {
 
 type ActionResponse<T = null> = {
   success: boolean;
-  data: T;
+  data?: T;
   error?: {
     message: string;
     details?: Record<string, string[]>;
@@ -79,7 +79,8 @@ type ActionResponse<T = null> = {
 };
 
 type SuccessResponse<T = null> = ActionResponse<T> & { success: true };
-type ErrorResponse = ActionResponse<null> & { success: false };
+type ErrorResponse = ActionResponse<undefined> & { success: false };
 
 type APIErrorResponse = NextResponse<ErrorResponse>;
 type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
+type ActionResponseType<T = null> = Promise<SuccessResponse<T> | ErrorResponse>;

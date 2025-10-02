@@ -1,7 +1,7 @@
 'use server';
 
 import { Session } from 'next-auth';
-import { ZodError, ZodSchema } from 'zod';
+import { ZodError, ZodType } from 'zod';
 
 import { auth } from '@/auth';
 
@@ -10,7 +10,7 @@ import dbConnect from '../mongoose';
 
 type ActionOptions<T> = {
   params?: T;
-  schema?: ZodSchema<T>;
+  schema?: ZodType<T>;
   authorize?: boolean;
 };
 
@@ -19,6 +19,7 @@ async function action<T>({ params, schema, authorize = false }: ActionOptions<T>
     try {
       schema.parse(params);
     } catch (error) {
+      console.error('Validation error instance:', error?.constructor.name, error);
       if (error instanceof ZodError) {
         return new ValidationError(error.flatten().fieldErrors as Record<string, string[]>);
       } else {

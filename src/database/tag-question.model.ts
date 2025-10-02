@@ -12,6 +12,6 @@ const TagQuestionSchema = new Schema<ITagQuestion>(
   { timestamps: true },
 );
 
-const TagQuestion = models.TagQuestion || model<ITagQuestion>('TagQuestion', TagQuestionSchema);
+const TagQuestion = models?.TagQuestion || model<ITagQuestion>('TagQuestion', TagQuestionSchema);
 
 export default TagQuestion;
