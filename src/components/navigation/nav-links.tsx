@@ -9,11 +9,10 @@ import { usePathname } from 'next/navigation';
 import { sidebarLinks } from '@/constants';
 import { cn } from '@/lib/utils';
 
-import { SheetClose } from '../ui/sheet';
+import { SheetClose } from '@/components/ui/sheet';
 
-const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
+const NavLinks = ({ userId, isMobileNav = false }: { userId?: string; isMobileNav?: boolean }) => {
   const pathname = usePathname();
-  const userId = 1;
 
   return (
     <>
@@ -22,9 +21,8 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
           (pathname.includes(link.route) && link.route.length > 1) || pathname === link.route;
 
         if (link.route === '/profile') {
-          if (!userId) return null;
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-          `${link.route}/${userId}`;
+          if (userId) link.route = `${link.route}/${userId}`;
+          else return null;
         }
         const LinkComponent = (
           <Link

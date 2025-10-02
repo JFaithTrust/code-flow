@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
+import { Eye, EyeOff } from 'lucide-react'; // Assuming lucide-react is installed
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DefaultValues, FieldValues, Path, SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z, ZodType } from 'zod';
 
 import ROUTES from '@/constants/routes';
+import { ActionResponse } from '@/types/model';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +26,7 @@ interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
   formType: 'SIGN_IN' | 'SIGN_UP';
-  onSubmit: (data: T) => Promise<{ success: boolean }>;
+  onSubmit: (data: T) => Promise<ActionResponse>;
 }
 
 const AuthForm = <T extends FieldValues>({
@@ -31,12 +35,25 @@ const AuthForm = <T extends FieldValues>({
   formType,
   onSubmit,
 }: AuthFormProps<T>) => {
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: standardSchemaResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
-  const handleSubmit: SubmitHandler<T> = async () => {};
+  const handleSubmit: SubmitHandler<T> = async (data) => {
+    const result = await onSubmit(data);
+
+    if (result.success) {
+      toast.success(formType === 'SIGN_IN' ? 'Signed in successfully!' : 'Signed up successfully!');
+
+      router.push(ROUTES.HOME);
+    } else {
+      toast.error(`Error ${result.status}: ${result.error?.message}`);
+    }
+  };
 
   const buttonText = formType === 'SIGN_IN' ? 'Sign In' : 'Sign Up';
 
@@ -56,13 +73,30 @@ const AuthForm = <T extends FieldValues>({
                     : field.name.charAt(0).toUpperCase() + field.name.slice(1)}
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    required
-                    type={field.name === 'password' ? 'password' : 'text'}
-                    placeholder={field.name}
-                    {...field}
-                    className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 paragraph-regular text-dark300_light700 no-focus"
-                  />
+                  <div className="relative">
+                    <Input
+                      required
+                      type={
+                        field.name === 'password' ? (showPassword ? 'text' : 'password') : 'text'
+                      }
+                      placeholder={field.name}
+                      {...field}
+                      className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 pr-10 paragraph-regular text-dark300_light700 no-focus"
+                    />
+                    {field.name === 'password' && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-5  text-gray-400" />
+                        ) : (
+                          <Eye className="size-5  text-gray-400" />
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

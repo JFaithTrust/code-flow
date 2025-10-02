@@ -1,8 +1,6 @@
 import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
-import { api } from '@/lib/api';
-import handleError from '@/lib/handlers/error';
 
 import QuestionCard from '@/components/cards/question.card';
 import HomeFilter from '@/components/shared/home-filter';
@@ -50,18 +48,7 @@ const questions: IQuestion[] = [
   },
 ];
 
-const test = async () => {
-  try {
-    return await api.users.getAll();
-  } catch (error) {
-    return handleError(error);
-  }
-};
-
 export default async function Home({ searchParams }: RouteParams) {
-  const users = await test();
-  console.log(users);
-
   const { query = '', filter = '' } = await searchParams;
 
   const filteredQuestions = questions.filter((question) => {
