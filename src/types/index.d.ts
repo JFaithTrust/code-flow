@@ -14,9 +14,10 @@ interface IAuthor {
   image: string;
 }
 
-interface IQuestion {
+interface Question {
   _id: string;
   title: string;
+  content: string;
   tags: ITag[];
   author: IAuthor;
   createdAt: Date;

@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import z from 'zod';
 
 import ROUTES from '@/constants/routes';
-import { createQuestion } from '@/lib/actions/question.action';
+import { createQuestion, updateQuestion } from '@/lib/actions/question.action';
 import { AskQuestionSchema } from '@/lib/validation';
 
 import TagCard from '../cards/tag.card';
@@ -32,20 +32,37 @@ const Editor = dynamic(() => import('@/components/editor'), {
   ssr: false,
 });
 
-const QuestionForm = () => {
+interface QuestionFormProps {
+  question?: Question;
+  isEdit?: boolean;
+}
+
+const QuestionForm = ({ question, isEdit }: QuestionFormProps) => {
   const editorRef = React.useRef<MDXEditorMethods>(null);
   const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
-      title: '',
-      content: '',
-      tags: [],
+      title: question?.title || '',
+      content: question?.content || '',
+      tags: question?.tags.map((tag) => tag.name) || [],
     },
   });
 
   const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+    if (isEdit && question) {
+      const result = await updateQuestion({ questionId: question._id, ...data });
+
+      if (result.success && result.data) {
+        toast.success('Question updated successfully');
+
+        router.push(ROUTES.QUESTION(result.data._id as string));
+      } else {
+        toast.error(`Error ${result.status}: ${result.error?.message || 'Something went wrong'}`);
+      }
+    }
+
     const result = await createQuestion(data);
 
     if (result.success && result.data) {
@@ -189,7 +206,7 @@ const QuestionForm = () => {
                 <span>Submitting</span>
               </>
             ) : (
-              <>Ask A Question</>
+              <>{isEdit ? 'Edit Question' : 'Ask A Question'}</>
             )}
           </Button>
         </div>
