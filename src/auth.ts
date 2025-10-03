@@ -60,7 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           account.type === 'credentials' ? token.email! : account.providerAccountId,
         )) as ActionResponse<IAccountDocument>;
 
-        if (!success && !existingAccount) return token;
+        if (!success || !existingAccount) return token;
 
         const userId = existingAccount.userId;
 
