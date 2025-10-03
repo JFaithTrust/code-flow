@@ -1,20 +1,20 @@
 import React from 'react';
 
+import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
-import { getTimeStamp } from '@/lib/utils';
 
 import TagCard from './tag.card';
 import Metric from '../shared/metric';
 
-const QuestionCard = ({ question }: { question: IQuestion }) => {
+const QuestionCard = ({ question }: { question: Question }) => {
   return (
     <div className="rounded-[10px] card-wrapper p-9 sm:px-11">
       <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
         <div>
           <span className="line-clamp-1 flex subtle-regular text-dark400_light700 sm:hidden">
-            {getTimeStamp(question.createdAt)}
+            {formatDistanceToNow(new Date(question.createdAt), { addSuffix: true })}
           </span>
 
           <Link href={ROUTES.QUESTION(question._id)}>
@@ -36,7 +36,9 @@ const QuestionCard = ({ question }: { question: IQuestion }) => {
           imgUrl={question.author.image}
           alt={question.author.name}
           value={question.author.name}
-          title={`• asked ${getTimeStamp(question.createdAt)}`}
+          title={`• asked ${formatDistanceToNow(new Date(question.createdAt), {
+            addSuffix: true,
+          })}`}
           href={ROUTES.PROFILE(question.author._id)}
           textStyles="body-medium text-dark400_light700"
           isAuthor

@@ -1,6 +1,7 @@
 import mongoose, { Mongoose } from 'mongoose';
 
 import logger from './logger';
+import '@/database';
 
 const MONGO_URI = process.env.NEXT_PUBLIC_MONGODB_URI as string;
 

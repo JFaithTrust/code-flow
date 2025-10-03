@@ -1,6 +1,6 @@
 'use server';
 
-import mongoose from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 
 import Question, { IQuestionDocument } from '@/database/question.model';
 import TagQuestion from '@/database/tag-question.model';
@@ -10,10 +10,76 @@ import { ActionResponse, ErrorResponse } from '@/types/model';
 import action from '../handlers/action';
 import handleError from '../handlers/error';
 import { NotFoundError, UnauthorizedError } from '../http-errors';
-import { AskQuestionSchema, EditQuestionSchema, GetQuestionsSchema } from '../validation';
+import {
+  AskQuestionSchema,
+  EditQuestionSchema,
+  GetQuestionsSchema,
+  PaginatedSearchSchema,
+} from '../validation';
 
 function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export async function getAllQuestions(
+  params: PaginatedSearchParams,
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validationResult = await action({ params, schema: PaginatedSearchSchema });
+
+  if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
+
+  const { page = 1, pageSize = 10, query, filter } = validationResult.params!;
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = Number(pageSize);
+
+  const filterQuery: FilterQuery<Question> = {};
+
+  if (filter === 'recomended') {
+    return { success: true, data: { questions: [], isNext: false } };
+  }
+
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, 'i') } },
+      { content: { $regex: new RegExp(query, 'i') } },
+    ];
+  }
+
+  let sortCriteria = {};
+
+  switch (filter) {
+    case 'newest':
+      sortCriteria = { createdAt: -1 };
+      break;
+    case 'unanswered':
+      filterQuery.answers = 0;
+      sortCriteria = { createdAt: -1 };
+      break;
+    case 'popular':
+      sortCriteria = { upvotes: -1 };
+      break;
+    default:
+      sortCriteria = { createdAt: -1 };
+      break;
+  }
+
+  try {
+    const totalQuestions = await Question.countDocuments(filterQuery);
+
+    const questions = await Question.find(filterQuery)
+      .populate('tags', 'name')
+      .populate('author', 'name image')
+      .lean()
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit);
+
+    const isNext = skip + questions.length < totalQuestions;
+
+    return { success: true, data: { questions: JSON.parse(JSON.stringify(questions)), isNext } };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
 }
 
 export async function getQuestionById(
@@ -116,7 +182,7 @@ export async function updateQuestion(
     );
 
     const tagsToRemove = question.tags.filter(
-      (tag: ITagDocument) => !tags.includes(tag.name.toLowerCase()),
+      (tag: ITagDocument) => !tags.some((t) => t.toLowerCase() === tag.name.toLowerCase()), // use some instead of includes to compare names
     );
 
     const newTagDocuments = [];
@@ -124,7 +190,7 @@ export async function updateQuestion(
     if (tagsToAdd.length > 0) {
       for (const tag of tagsToAdd) {
         const existingTag = await Tag.findOneAndUpdate(
-          { name: new RegExp(`^${escapeRegExp(tag)}$`, 'i') }, // changed by escapeRegExp function
+          { name: { $regex: `^${escapeRegExp(tag)}$`, $options: 'i' } }, // changed by escapeRegExp function
           { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
           { upsert: true, new: true, session },
         );
@@ -151,7 +217,8 @@ export async function updateQuestion(
       );
 
       question.tags = question.tags.filter(
-        (tagId: mongoose.Types.ObjectId) => !tagsToRemoveIds.includes(tagId),
+        (tag: mongoose.Types.ObjectId) =>
+          !tagsToRemoveIds.some((id: mongoose.Types.ObjectId) => id.equals(tag._id)),
       );
     }
 
