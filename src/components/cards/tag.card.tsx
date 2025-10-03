@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
-import { getDeviconClassName } from '@/lib/utils';
+import { cn, getDeviconClassName, getTechDescription } from '@/lib/utils';
 
 import { Badge } from '../ui/badge';
 
@@ -30,6 +30,7 @@ const TagCard = ({
   onRemove,
 }: TagCardProps) => {
   const iconClass = getDeviconClassName(name);
+  const iconDescription = getTechDescription(name);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,6 +68,25 @@ const TagCard = ({
       </Link>
     );
   }
+
+  return (
+    <Link href={ROUTES.TAG(_id)} className="shadow-light100_darknone">
+      <article className="flex w-full flex-col rounded-2xl border light-border background-light900_dark200 px-8 py-10 sm:w-[260px]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="w-fit rounded-sm !background-light800_dark400 px-5 py-1.5">
+            <p className="paragraph-semibold text-dark300_light900">{name}</p>
+          </div>
+          <i className={cn(iconClass, 'text-2xl')} aria-hidden="true" />
+        </div>
+        <p className="mt-5 line-clamp-3 w-full small-regular text-dark500_light700">
+          {iconDescription}
+        </p>
+        <p className="mt-3.5 small-medium text-dark400_light500">
+          <span className="mr-2.5 primary-text-gradient body-semibold">{questions}+</span> Questions
+        </p>
+      </article>
+    </Link>
+  );
 };
 
 export default TagCard;

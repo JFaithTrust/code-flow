@@ -3,12 +3,12 @@ interface RouteParams {
   searchParams: Promise<Record<string, string>>;
 }
 
-interface ITag {
+interface Tag {
   _id: string;
   name: string;
 }
 
-interface IAuthor {
+interface Author {
   _id: string;
   name: string;
   image: string;
@@ -18,8 +18,8 @@ interface Question {
   _id: string;
   title: string;
   content: string;
-  tags: ITag[];
-  author: IAuthor;
+  tags: Tag[];
+  author: Author;
   createdAt: Date;
   updatedAt: Date;
   views: number;
