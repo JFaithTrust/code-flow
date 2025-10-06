@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { DEFAULT_ERROR } from '@/constants/states';
+import { DEFAULT_ERROR, DEFAULT_EMPTY } from '@/constants/states';
 
 import StateSkeleton from './state-skeleton';
 
@@ -22,7 +22,13 @@ interface DataRendererProps<T> {
   render: (data: T[]) => React.ReactNode;
 }
 
-const DataRenderer = <T,>({ success, error, data, empty, render }: DataRendererProps<T>) => {
+const DataRenderer = <T,>({
+  success,
+  error,
+  data,
+  empty = DEFAULT_EMPTY,
+  render,
+}: DataRendererProps<T>) => {
   if (!success) {
     return (
       <StateSkeleton

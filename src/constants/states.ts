@@ -9,6 +9,11 @@ export const DEFAULT_EMPTY = {
   },
 };
 
+export const EMPTY_ANSWERS = {
+  title: 'No Answers Found',
+  message: 'The answer board is empty. Make it rain with your brilliant answer.',
+};
+
 export const DEFAULT_ERROR = {
   title: 'Something Went Wrong',
   message: 'Even our code can have a bad day. Give it another shot.',

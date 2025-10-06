@@ -1,4 +1,4 @@
-import { IAccount, IUser } from '@/types/model';
+import { APIResponse, IAccount, IUser } from '@/types/model';
 
 import { fetchHandler } from './handlers/fetch';
 
@@ -56,6 +56,13 @@ export const api = {
     delete: (id: string) =>
       fetchHandler(`${API_BASE_URL}/accounts/${id}`, {
         method: 'DELETE',
+      }),
+  },
+  ai: {
+    getAnswer: (question: string, content: string, userAnswer?: string): APIResponse<string> =>
+      fetchHandler(`${API_BASE_URL}/ai/answer`, {
+        method: 'POST',
+        body: JSON.stringify({ question, content, userAnswer }),
       }),
   },
 };

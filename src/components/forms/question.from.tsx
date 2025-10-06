@@ -149,7 +149,7 @@ const QuestionForm = ({ question, isEdit }: QuestionFormProps) => {
                 Detailed explanation of your problem <span className="text-primary-500">*</span>
               </FormLabel>
               <FormControl>
-                <Editor editorRef={editorRef} value={field.value} fieldChange={field.onChange} />
+                <Editor ref={editorRef} value={field.value} fieldChange={field.onChange} />
               </FormControl>
               <FormDescription className="mt-2.5 body-regular text-light-500">
                 Introduce the problem and expand on what you&apos;ve put in the title.

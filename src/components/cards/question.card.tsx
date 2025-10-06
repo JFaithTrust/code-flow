@@ -40,9 +40,32 @@ const QuestionCard = ({ question }: { question: Question }) => {
             addSuffix: true,
           })}`}
           href={ROUTES.PROFILE(question.author._id)}
-          textStyles="body-medium text-dark400_light700"
+          textStyles="max-sm:hidden body-medium text-dark400_light700"
           isAuthor
         />
+        <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:justify-start">
+          <Metric
+            imgUrl="/icons/like.svg"
+            alt="like"
+            value={question.upvotes}
+            title=" Votes"
+            textStyles="small-medium text-dark400_light800"
+          />
+          <Metric
+            imgUrl="/icons/message.svg"
+            alt="message"
+            value={question.answers}
+            title=" Answers"
+            textStyles="small-medium text-dark400_light800"
+          />
+          <Metric
+            imgUrl="/icons/eye.svg"
+            alt="view"
+            value={question.views}
+            title=" Views"
+            textStyles="small-medium text-dark400_light800"
+          />
+        </div>
       </div>
     </div>
   );

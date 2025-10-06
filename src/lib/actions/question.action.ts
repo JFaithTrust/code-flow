@@ -14,6 +14,7 @@ import {
   AskQuestionSchema,
   EditQuestionSchema,
   GetQuestionsSchema,
+  IncrementViewSchema,
   PaginatedSearchSchema,
 } from '../validation';
 
@@ -92,7 +93,9 @@ export async function getQuestionById(
   const { questionId } = validationResult.params!;
 
   try {
-    const question = await Question.findById(questionId).populate('tags').lean<Question>();
+    const question = await Question.findById(questionId)
+      .populate('tags')
+      .populate('author', 'name image');
 
     if (!question) throw new NotFoundError('Question');
 
@@ -235,5 +238,30 @@ export async function updateQuestion(
     return handleError(error) as ErrorResponse;
   } finally {
     session.endSession();
+  }
+}
+
+export async function incrementQuestionViews(
+  params: incrementQuestionViewsParams,
+): Promise<ActionResponse<{ views: number }>> {
+  const validationResult = await action({ params, schema: IncrementViewSchema });
+
+  if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
+
+  const { questionId } = validationResult.params!;
+
+  try {
+    const question = await Question.findById(questionId);
+
+    if (!question) throw new NotFoundError('Question');
+
+    question.views += 1;
+    await question.save();
+
+    // revalidatePath(ROUTES.QUESTION(questionId));
+
+    return { success: true, data: { views: question.views } };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
   }
 }

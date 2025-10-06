@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 import { Avatar } from '../ui/avatar';
 
@@ -13,9 +14,16 @@ interface UserAvatarProps {
   name: string;
   imageUrl?: string | null;
   className?: string;
+  fallbackClassName?: string;
 }
 
-const UserAvatar = ({ id, name, imageUrl, className = 'size-9' }: UserAvatarProps) => {
+const UserAvatar = ({
+  id,
+  name,
+  imageUrl,
+  className = 'size-9',
+  fallbackClassName,
+}: UserAvatarProps) => {
   const initials = name
     .split(' ')
     .map((word: string) => word[0])
@@ -36,7 +44,12 @@ const UserAvatar = ({ id, name, imageUrl, className = 'size-9' }: UserAvatarProp
             className="object-cover"
           />
         ) : (
-          <AvatarFallback className="flex-center w-full font-space-grotesk font-bold tracking-wider text-white primary-gradient">
+          <AvatarFallback
+            className={cn(
+              'flex-center w-full font-space-grotesk font-bold tracking-wider text-white primary-gradient',
+              fallbackClassName,
+            )}
+          >
             {initials}
           </AvatarFallback>
         )}

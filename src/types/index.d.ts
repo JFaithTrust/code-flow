@@ -26,3 +26,10 @@ interface Question {
   answers: number;
   upvotes: number;
 }
+
+interface Answer {
+  _id: string;
+  content: string;
+  author: Author;
+  createdAt: Date;
+}
