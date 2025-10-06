@@ -25,11 +25,14 @@ interface Question {
   views: number;
   answers: number;
   upvotes: number;
+  downvotes: number;
 }
 
 interface Answer {
   _id: string;
   content: string;
   author: Author;
+  upvotes: number;
+  downvotes: number;
   createdAt: Date;
 }

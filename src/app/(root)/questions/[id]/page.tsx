@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import { formatDistanceToNowStrict } from 'date-fns';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import ROUTES from '@/constants/routes';
 import { EMPTY_ANSWERS } from '@/constants/states';
 import { getAllAnswers } from '@/lib/actions/answer.action';
 import { getQuestionById, incrementQuestionViews } from '@/lib/actions/question.action';
+import { hasVoted } from '@/lib/actions/vote.action';
 import { formatNumber } from '@/lib/utils';
 
 import AnswerCard from '@/components/cards/answer.card';
@@ -17,14 +18,15 @@ import AnswerForm from '@/components/forms/answer.form';
 import DataRenderer from '@/components/shared/data-renderer';
 import Metric from '@/components/shared/metric';
 import UserAvatar from '@/components/shared/user-avatar';
+import Votes from '@/components/shared/votes';
 
 const QuestionDetailPage = async ({ params }: RouteParams) => {
   const { id } = await params;
 
   const { success: incrementSuccess } = await incrementQuestionViews({ questionId: id });
-  const { success, data } = await getQuestionById({ questionId: id });
+  const { success, data: question } = await getQuestionById({ questionId: id });
 
-  if (!success || !data) notFound();
+  if (!success || !question) notFound();
 
   const {
     success: answersSuccess,
@@ -44,7 +46,12 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
 
   if (!incrementSuccess) console.error('Failed to increment question views');
 
-  const { _id, author, title, content, tags, createdAt, views, answers: answersCount } = data;
+  const hasVotedPromise = hasVoted({
+    targetId: question._id,
+    targetType: 'question',
+  });
+
+  const { _id, author, title, content, tags, createdAt, views, answers: answersCount } = question;
   const { totalAnswers, answers } = answersResult;
 
   return (
@@ -65,7 +72,15 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
           </div>
 
           <div className="flex justify-end">
-            <p>Votes</p>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Votes
+                targetType="question"
+                upvotes={question.upvotes}
+                downvotes={question.downvotes}
+                targetId={question._id}
+                hasVotedPromise={hasVotedPromise}
+              />
+            </Suspense>
           </div>
         </div>
 

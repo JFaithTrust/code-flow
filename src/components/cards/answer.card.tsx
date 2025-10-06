@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
+import { hasVoted } from '@/lib/actions/vote.action';
 
 import Preview from '../editor/preview';
 import UserAvatar from '../shared/user-avatar';
+import Votes from '../shared/votes';
 
 const AnswerCard = ({ answer }: { answer: Answer }) => {
+  const hasVotedPromise = hasVoted({
+    targetId: answer._id.toString(),
+    targetType: 'answer',
+  });
   return (
     <article className="border-b light-border py-10">
       <span id={JSON.stringify(answer._id)} className="hash-span" />
@@ -35,7 +41,17 @@ const AnswerCard = ({ answer }: { answer: Answer }) => {
             </p>
           </Link>
         </div>
-        <div className="flex justify-end">Votes</div>
+        <div className="flex justify-end">
+          <Suspense fallback={<div>Loading...</div>}>
+            <Votes
+              targetType="answer"
+              targetId={answer._id.toString()}
+              hasVotedPromise={hasVotedPromise}
+              upvotes={answer.upvotes}
+              downvotes={answer.downvotes}
+            />
+          </Suspense>
+        </div>
       </div>
 
       <Preview content={answer.content} />
