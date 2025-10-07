@@ -36,3 +36,21 @@ interface Answer {
   downvotes: number;
   createdAt: Date;
 }
+
+interface User {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  bio?: string;
+  image?: string;
+  location?: string;
+  portfolio?: string;
+  reputation?: number;
+}
+
+interface Collection {
+  _id: string;
+  author: string | Author;
+  question: Question;
+}

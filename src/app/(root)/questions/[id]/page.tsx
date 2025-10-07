@@ -4,9 +4,11 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { AnswerFilters } from '@/constants/filters';
 import ROUTES from '@/constants/routes';
 import { EMPTY_ANSWERS } from '@/constants/states';
 import { getAllAnswers } from '@/lib/actions/answer.action';
+import { hasSavedQuestion } from '@/lib/actions/collection.action';
 import { getQuestionById, incrementQuestionViews } from '@/lib/actions/question.action';
 import { hasVoted } from '@/lib/actions/vote.action';
 import { formatNumber } from '@/lib/utils';
@@ -15,13 +17,17 @@ import AnswerCard from '@/components/cards/answer.card';
 import TagCard from '@/components/cards/tag.card';
 import Preview from '@/components/editor/preview';
 import AnswerForm from '@/components/forms/answer.form';
+import CommonFilter from '@/components/shared/common-filter';
 import DataRenderer from '@/components/shared/data-renderer';
 import Metric from '@/components/shared/metric';
+import Pagination from '@/components/shared/pagination';
+import SaveQuestion from '@/components/shared/save-question';
 import UserAvatar from '@/components/shared/user-avatar';
 import Votes from '@/components/shared/votes';
 
-const QuestionDetailPage = async ({ params }: RouteParams) => {
+const QuestionDetailPage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
+  const { page, pageSize, filter } = await searchParams;
 
   const { success: incrementSuccess } = await incrementQuestionViews({ questionId: id });
   const { success, data: question } = await getQuestionById({ questionId: id });
@@ -34,9 +40,9 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
     error: answersError,
   } = await getAllAnswers({
     questionId: id,
-    page: 1,
-    pageSize: 10,
-    filter: 'latest',
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+    filter,
   });
 
   if (!answersSuccess || answersError || !answersResult) {
@@ -52,7 +58,11 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
   });
 
   const { _id, author, title, content, tags, createdAt, views, answers: answersCount } = question;
-  const { totalAnswers, answers } = answersResult;
+  const { totalAnswers, answers, isNext } = answersResult;
+
+  const hasSavedQuestionPromise = hasSavedQuestion({
+    questionId: question._id,
+  });
 
   return (
     <>
@@ -71,7 +81,7 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
             </Link>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-4">
             <Suspense fallback={<div>Loading...</div>}>
               <Votes
                 targetType="question"
@@ -79,6 +89,12 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
                 downvotes={question.downvotes}
                 targetId={question._id}
                 hasVotedPromise={hasVotedPromise}
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <SaveQuestion
+                questionId={question._id}
+                hasSavedQuestionPromise={hasSavedQuestionPromise}
               />
             </Suspense>
           </div>
@@ -124,7 +140,11 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
           <h3 className="primary-text-gradient">
             {totalAnswers} {totalAnswers === 1 ? 'Answer' : 'Answers'}
           </h3>
-          <p>Filters</p>
+          <CommonFilter
+            filters={AnswerFilters}
+            otherClasses="sm:min-w-32"
+            containerClasses="max-xs:w-full"
+          />
         </div>
 
         <DataRenderer
@@ -134,6 +154,8 @@ const QuestionDetailPage = async ({ params }: RouteParams) => {
           empty={EMPTY_ANSWERS}
           render={(answers) => answers.map((a) => <AnswerCard key={a._id} answer={a} />)}
         />
+
+        <Pagination page={page} isNext={isNext || false} />
       </section>
 
       <section className="my-5">

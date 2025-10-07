@@ -7,6 +7,7 @@ import { getTagQuestions } from '@/lib/actions/tag.question';
 import QuestionCard from '@/components/cards/question.card';
 import DataRenderer from '@/components/shared/data-renderer';
 import LocalSearch from '@/components/shared/locale-search';
+import Pagination from '@/components/shared/pagination';
 
 const TagsDetailPage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
@@ -19,7 +20,7 @@ const TagsDetailPage = async ({ params, searchParams }: RouteParams) => {
     query,
   });
 
-  const { tag, questions } = data || {};
+  const { tag, questions, isNext } = data || {};
 
   return (
     <>
@@ -47,6 +48,8 @@ const TagsDetailPage = async ({ params, searchParams }: RouteParams) => {
           </div>
         )}
       />
+
+      <Pagination page={page} isNext={isNext || false} />
     </>
   );
 };

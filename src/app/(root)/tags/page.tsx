@@ -1,12 +1,15 @@
 import React from 'react';
 
+import { TagFilters } from '@/constants/filters';
 import ROUTES from '@/constants/routes';
 import { EMPTY_TAGS } from '@/constants/states';
 import { getAllTags } from '@/lib/actions/tag.question';
 
 import TagCard from '@/components/cards/tag.card';
+import CommonFilter from '@/components/shared/common-filter';
 import DataRenderer from '@/components/shared/data-renderer';
 import LocalSearch from '@/components/shared/locale-search';
+import Pagination from '@/components/shared/pagination';
 
 const TagsPage = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = await searchParams;
@@ -18,18 +21,19 @@ const TagsPage = async ({ searchParams }: RouteParams) => {
     filter,
   });
 
-  const { tags } = data || {};
+  const { tags, isNext } = data || {};
 
   return (
     <>
       <h1 className="h1-bold text-3xl text-dark100_light900">Tags</h1>
-      <section className="mt-11">
+      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
           placeholder="Search tags..."
           imgSrc="/icons/search.svg"
           route={ROUTES.TAGS}
           otherClasses="flex-1"
         />
+        <CommonFilter filters={TagFilters} otherClasses="min-h-[56px] sm:min-w-[170px]" />
       </section>
       <DataRenderer
         success={success}
@@ -44,6 +48,8 @@ const TagsPage = async ({ searchParams }: RouteParams) => {
           </div>
         )}
       />
+
+      <Pagination page={page} isNext={isNext || false} />
     </>
   );
 };
