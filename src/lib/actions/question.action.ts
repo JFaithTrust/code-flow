@@ -83,6 +83,16 @@ export async function getAllQuestions(
   }
 }
 
+export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
+  try {
+    const questions = await Question.find().sort({ upvotes: -1, views: -1 }).limit(5);
+
+    return { success: true, data: JSON.parse(JSON.stringify(questions)) };
+  } catch (error) {
+    return handleError(error as Error) as ErrorResponse;
+  }
+}
+
 export async function getQuestionById(
   params: GetQuestionsParams,
 ): Promise<ActionResponse<Question>> {

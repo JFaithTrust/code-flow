@@ -6,6 +6,7 @@ interface RouteParams {
 interface Tag {
   _id: string;
   name: string;
+  questions?: number;
 }
 
 interface Author {
