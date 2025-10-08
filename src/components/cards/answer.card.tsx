@@ -5,18 +5,26 @@ import Link from 'next/link';
 
 import ROUTES from '@/constants/routes';
 import { hasVoted } from '@/lib/actions/vote.action';
+import { cn } from '@/lib/utils';
 
 import Preview from '../editor/preview';
 import UserAvatar from '../shared/user-avatar';
 import Votes from '../shared/votes';
 
-const AnswerCard = ({ answer }: { answer: Answer }) => {
+interface AnswerCardProps {
+  answer: Answer;
+  containerClasses?: string;
+  showReadMore?: boolean;
+}
+
+const AnswerCard = ({ answer, containerClasses, showReadMore = false }: AnswerCardProps) => {
   const hasVotedPromise = hasVoted({
     targetId: answer._id.toString(),
     targetType: 'answer',
   });
+
   return (
-    <article className="border-b light-border py-10">
+    <article className={cn('border-b light-border py-10', containerClasses)}>
       <span id={JSON.stringify(answer._id)} className="hash-span" />
       <div className="mb-5 flex flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <div className="flex flex-1 items-start gap-1 sm:items-center">
@@ -55,6 +63,15 @@ const AnswerCard = ({ answer }: { answer: Answer }) => {
       </div>
 
       <Preview content={answer.content} />
+
+      {showReadMore && (
+        <Link
+          href={`/questions/${answer.question}#answer-${answer._id}`}
+          className="relative z-10 font-space-grotesk body-semibold text-primary-500"
+        >
+          <p className="mt-1">Read more...</p>
+        </Link>
+      )}
     </article>
   );
 };

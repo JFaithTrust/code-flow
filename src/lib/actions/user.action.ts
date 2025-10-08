@@ -1,13 +1,21 @@
 'use server';
 
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, PipelineStage, Types } from 'mongoose';
 
+import Answer from '@/database/answer.model';
+import Question from '@/database/question.model';
 import User from '@/database/user.model';
 import { ActionResponse, ErrorResponse } from '@/types/model';
 
 import action from '../handlers/action';
 import handleError from '../handlers/error';
-import { PaginatedSearchSchema } from '../validation';
+import { NotFoundError } from '../http-errors';
+import {
+  GetUserQuestionsSchema,
+  GetUserSchema,
+  GetUserTagsSchema,
+  PaginatedSearchSchema,
+} from '../validation';
 
 export async function getAllUsers(
   params: PaginatedSearchParams,
@@ -62,6 +70,125 @@ export async function getAllUsers(
     return {
       success: true,
       data: { users: JSON.parse(JSON.stringify(users)), isNext },
+    };
+  } catch (error) {
+    return handleError(error as Error) as ErrorResponse;
+  }
+}
+
+export async function getUserById(
+  params: GetUserParams,
+): Promise<ActionResponse<{ user: User; totalQuestions: number; totalAnswers: number }>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId } = validationResult.params!;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) throw new NotFoundError('User');
+
+    const totalQuestions = await Question.countDocuments({ author: userId });
+    const totalAnswers = await Answer.countDocuments({ author: userId });
+
+    return {
+      success: true,
+      data: { user: JSON.parse(JSON.stringify(user)), totalQuestions, totalAnswers },
+    };
+  } catch (error) {
+    return handleError(error as Error) as ErrorResponse;
+  }
+}
+
+export async function getUserQuestions(
+  params: GetUserQuestionsParams,
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserQuestionsSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId, page = 1, pageSize = 10 } = validationResult.params!;
+
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = pageSize;
+
+  try {
+    const totalQuestions = await Question.countDocuments({ author: userId });
+
+    const questions = await Question.find({ author: userId })
+      .populate('author', 'name image')
+      .populate('tags', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const isNext = skip + questions.length < totalQuestions;
+
+    return {
+      success: true,
+      data: { questions: JSON.parse(JSON.stringify(questions)), isNext },
+    };
+  } catch (error) {
+    return handleError(error as Error) as ErrorResponse;
+  }
+}
+
+export async function getUserTopTags(
+  params: GetUserTagsParams,
+): Promise<ActionResponse<{ tags: { _id: string; name: string; count: number }[] }>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserTagsSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId } = validationResult.params!;
+
+  try {
+    const pipeline: PipelineStage[] = [
+      { $match: { author: new Types.ObjectId(userId) } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: 'tags',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'tagInfo',
+        },
+      },
+      { $unwind: '$tagInfo' },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          _id: '$tagInfo._id',
+          name: '$tagInfo.name',
+          count: 1,
+        },
+      },
+    ];
+
+    const tags = await Question.aggregate(pipeline);
+
+    return {
+      success: true,
+      data: { tags: JSON.parse(JSON.stringify(tags)) },
     };
   } catch (error) {
     return handleError(error as Error) as ErrorResponse;

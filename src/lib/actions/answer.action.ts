@@ -11,7 +11,7 @@ import { ActionResponse, ErrorResponse } from '@/types/model';
 import action from '../handlers/action';
 import handleError from '../handlers/error';
 import { NotFoundError } from '../http-errors';
-import { CreateAnswerSchema, GetAnswersSchema } from '../validation';
+import { CreateAnswerSchema, GetAnswersSchema, GetUserAnswersSchema } from '../validation';
 
 export async function getAllAnswers(params: GetAnswerParams): Promise<
   ActionResponse<{
@@ -121,5 +121,40 @@ export async function createAnswer(
     return handleError(error as Error) as ErrorResponse;
   } finally {
     session.endSession();
+  }
+}
+
+export async function getUserAnswers(
+  params: GetUserAnswersParams,
+): Promise<ActionResponse<{ answers: Answer[]; isNext: boolean }>> {
+  const validationResult = await action({ params, schema: GetUserAnswersSchema });
+
+  if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
+
+  const { userId, page = 1, pageSize = 10 } = validationResult.params!;
+
+  const skip = (Number(page) - 1) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  try {
+    const totalAnswers = await Answer.countDocuments({ author: userId });
+
+    const answers = await Answer.find({ author: userId })
+      .populate('author', '_id name image')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const isNext = skip + answers.length < totalAnswers;
+
+    return {
+      success: true,
+      data: {
+        answers,
+        isNext,
+      },
+    };
+  } catch (error) {
+    return handleError(error as Error) as ErrorResponse;
   }
 }
