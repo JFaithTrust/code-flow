@@ -8,6 +8,7 @@ interface StatsProps {
   totalQuestions: number;
   totalAnswers: number;
   badges: BadgeCounts;
+  reputation: number;
 }
 
 interface StatsCardProps {
@@ -28,10 +29,13 @@ function StatsCard({ imgUrl, value, title }: StatsCardProps) {
   );
 }
 
-const Stats = ({ totalQuestions, totalAnswers, badges }: StatsProps) => {
+const Stats = ({ totalQuestions, totalAnswers, badges, reputation }: StatsProps) => {
   return (
     <div className="mt-3">
-      <h4 className="h3-semibold text-dark200_light900">Stats</h4>
+      <h4 className="h3-semibold text-dark200_light900">
+        Stats{' '}
+        <span className="primary-text-gradient small-semibold">{formatNumber(reputation)}</span>
+      </h4>
       <div className="mt-5 grid grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-4">
         <div className="flex flex-wrap items-center gap-4 rounded-md border light-border background-light900_dark300 p-6 shadow-light-300 dark:shadow-dark-200">
           {/* justify-evenly */}

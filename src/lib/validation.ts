@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { InteractionActionEnums } from '@/database/interaction.model';
+
 export const SignInSchema = z.object({
   email: z
     .email({ message: 'Please provide a valid email address.' })
@@ -36,7 +38,7 @@ export const AskQuestionSchema = z.object({
   title: z
     .string()
     .min(5, { message: 'Title must be at least 5 characters long' })
-    .max(100, { message: 'Title must be at most 100 characters long' }),
+    .max(140, { message: 'Title must be at most 140 characters long' }),
   content: z.string().min(1, { message: 'Body is required' }),
   tags: z
     .array(
@@ -176,4 +178,19 @@ export const GetUserAnswersSchema = PaginatedSearchSchema.extend({
 
 export const GetUserTagsSchema = z.object({
   userId: z.string().min(1, { message: 'User ID is required' }),
+});
+
+export const DeleteQuestionSchema = z.object({
+  questionId: z.string().min(1, { message: 'Question ID is required' }),
+});
+
+export const DeleteAnswerSchema = z.object({
+  answerId: z.string().min(1, { message: 'Answer ID is required' }),
+});
+
+export const CreateInteractionSchema = z.object({
+  action: z.enum(InteractionActionEnums),
+  actionId: z.string().min(1, { message: 'Action ID is required' }),
+  authorId: z.string().min(1, { message: 'Author ID is required' }),
+  actionTarget: z.enum(['question', 'answer']),
 });

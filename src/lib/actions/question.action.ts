@@ -1,10 +1,17 @@
 'use server';
 
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery, Types } from 'mongoose';
+import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 
+import { auth } from '@/auth';
+import Answer from '@/database/answer.model';
+import Collection from '@/database/collection.model';
+import Interaction from '@/database/interaction.model';
 import Question, { IQuestionDocument } from '@/database/question.model';
 import TagQuestion from '@/database/tag-question.model';
 import Tag, { ITagDocument } from '@/database/tag.model';
+import Vote from '@/database/vote.model';
 import { ActionResponse, ErrorResponse } from '@/types/model';
 
 import action from '../handlers/action';
@@ -12,14 +19,72 @@ import handleError from '../handlers/error';
 import { NotFoundError, UnauthorizedError } from '../http-errors';
 import {
   AskQuestionSchema,
+  DeleteQuestionSchema,
   EditQuestionSchema,
   GetQuestionsSchema,
   IncrementViewSchema,
   PaginatedSearchSchema,
 } from '../validation';
+import { createInteraction } from './interaction.action';
 
 function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export async function getRecommendedQuestions({
+  userId,
+  query,
+  skip,
+  limit,
+}: RecommendationParams) {
+  const interactions = await Interaction.find({
+    user: new Types.ObjectId(userId),
+    actionType: 'question',
+    action: { $in: ['view', 'upvote', 'bookmark', 'post'] },
+  })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  const interactedQuestionIds = interactions.map((i) => i.actionId);
+
+  const interactedQuestions = await Question.find({
+    _id: { $in: interactedQuestionIds },
+  }).select('tags');
+
+  const allTags = interactedQuestions.flatMap((q) =>
+    q.tags.map((tag: Types.ObjectId) => tag.toString()),
+  );
+
+  const uniqueTagIds = [...new Set(allTags)];
+
+  const recommendedQuery: FilterQuery<typeof Question> = {
+    _id: { $nin: interactedQuestionIds },
+    author: { $ne: new Types.ObjectId(userId) },
+    tags: { $in: uniqueTagIds.map((id) => new Types.ObjectId(id)) },
+  };
+
+  if (query) {
+    recommendedQuery.$or = [
+      { title: { $regex: query, $options: 'i' } },
+      { content: { $regex: query, $options: 'i' } },
+    ];
+  }
+
+  const total = await Question.countDocuments(recommendedQuery);
+
+  const questions = await Question.find(recommendedQuery)
+    .populate('tags', 'name')
+    .populate('author', 'name image')
+    .sort({ upvotes: -1, views: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  return {
+    questions: JSON.parse(JSON.stringify(questions)),
+    isNext: total > skip + questions.length,
+  };
 }
 
 export async function getAllQuestions(
@@ -34,19 +99,35 @@ export async function getAllQuestions(
   const limit = Number(pageSize);
 
   const filterQuery: FilterQuery<Question> = {};
+  let sortCriteria = {};
 
   if (filter === 'recomended') {
-    return { success: true, data: { questions: [], isNext: false } };
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return { success: true, data: { questions: [], isNext: false } };
+    }
+
+    const recommended = await getRecommendedQuestions({
+      userId,
+      query,
+      skip,
+      limit,
+    });
+
+    return {
+      success: true,
+      data: recommended,
+    };
   }
 
   if (query) {
     filterQuery.$or = [
-      { title: { $regex: new RegExp(query, 'i') } },
-      { content: { $regex: new RegExp(query, 'i') } },
+      { title: { $regex: query, $options: 'i' } },
+      { content: { $regex: query, $options: 'i' } },
     ];
   }
-
-  let sortCriteria = {};
 
   switch (filter) {
     case 'newest':
@@ -104,7 +185,7 @@ export async function getQuestionById(
 
   try {
     const question = await Question.findById(questionId)
-      .populate('tags')
+      .populate('tags', '_id name')
       .populate('author', 'name image');
 
     if (!question) throw new NotFoundError('Question');
@@ -151,6 +232,15 @@ export async function createQuestion(
 
     question.tags.push(...tagIds);
     await question.save({ session }); // Save the question with the associated tags
+
+    after(async () => {
+      await createInteraction({
+        action: 'post',
+        actionId: question._id.toString(),
+        actionTarget: 'question',
+        authorId: userId as string,
+      });
+    });
     await session.commitTransaction();
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
@@ -158,7 +248,7 @@ export async function createQuestion(
     await session.abortTransaction();
     return handleError(error) as ErrorResponse;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 }
 
@@ -202,15 +292,15 @@ export async function updateQuestion(
 
     if (tagsToAdd.length > 0) {
       for (const tag of tagsToAdd) {
-        const existingTag = await Tag.findOneAndUpdate(
+        const newTag = await Tag.findOneAndUpdate(
           { name: { $regex: `^${escapeRegExp(tag)}$`, $options: 'i' } }, // changed by escapeRegExp function
           { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
           { upsert: true, new: true, session },
         );
 
-        if (existingTag) {
-          newTagDocuments.push({ tag: existingTag._id, question: question._id });
-          question.tags.push(existingTag._id);
+        if (newTag) {
+          newTagDocuments.push({ tag: newTag._id, question: question._id });
+          question.tags.push(newTag._id);
         }
       }
     }
@@ -273,5 +363,76 @@ export async function incrementQuestionViews(
     return { success: true, data: { views: question.views } };
   } catch (error) {
     return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function deleteQuestion(params: DeleteQuestionParams): Promise<ActionResponse> {
+  const validationResult = await action({ params, schema: DeleteQuestionSchema, authorize: true });
+
+  if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
+
+  const { questionId } = validationResult.params!;
+  const { user } = validationResult.session!;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const question = await Question.findById(questionId).session(session);
+
+    if (!question) throw new NotFoundError('Question');
+
+    if (question.author.toString() !== user?.id) {
+      throw new UnauthorizedError();
+    }
+
+    await Collection.deleteMany({ question: questionId }).session(session);
+    await TagQuestion.deleteMany({ question: questionId }).session(session);
+
+    if (question.tags.length > 0) {
+      await Tag.updateMany(
+        { _id: { $in: question.tags } },
+        { $inc: { questions: -1 } },
+        { session },
+      );
+    }
+
+    await Vote.deleteMany({
+      actionId: questionId,
+      actionType: 'question',
+    }).session(session);
+
+    const answers = await Answer.find({ question: questionId }).session(session);
+
+    if (answers.length > 0) {
+      await Answer.deleteMany({ question: questionId }).session(session);
+
+      await Vote.deleteMany({
+        actionId: { $in: answers.map((answer) => answer.id) },
+        actionType: 'answer',
+      }).session(session);
+    }
+
+    await Question.findByIdAndDelete(questionId).session(session);
+
+    after(async () => {
+      await createInteraction({
+        action: 'delete',
+        actionId: questionId,
+        actionTarget: 'question',
+        authorId: user?.id as string,
+      });
+    });
+
+    await session.commitTransaction();
+
+    revalidatePath(`/profile/${user?.id}`);
+
+    return { success: true };
+  } catch (error) {
+    await session.abortTransaction();
+    return handleError(error) as ErrorResponse;
+  } finally {
+    session.endSession();
   }
 }

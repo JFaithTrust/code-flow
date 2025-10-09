@@ -4,8 +4,13 @@ import Link from 'next/link';
 
 import { auth } from '@/auth';
 import { EMPTY_ANSWERS, EMPTY_QUESTION, EMPTY_TAGS } from '@/constants/states';
-import { getUserAnswers } from '@/lib/actions/answer.action';
-import { getUserById, getUserQuestions, getUserTopTags } from '@/lib/actions/user.action';
+import {
+  getUserAnswers,
+  getUserById,
+  getUserQuestions,
+  getUserStats,
+  getUserTopTags,
+} from '@/lib/actions/user.action';
 
 import AnswerCard from '@/components/cards/answer.card';
 import QuestionCard from '@/components/cards/question.card';
@@ -28,12 +33,15 @@ const ProfilePage = async ({ params, searchParams }: RouteParams) => {
 
   if (!success)
     return (
-      <div>
-        <div className="h1-bold text-dark100_light900">{error?.message}</div>
+      <div className="flex flex-col items-center justify-center gap-4">
+        <h1 className="h1-bold text-dark100_light900">User not found</h1>
+        <p className="max-w-md paragraph-regular text-dark200_light800">{error?.message}</p>
       </div>
     );
 
-  const { user, totalQuestions, totalAnswers } = data!;
+  const { user } = data!;
+
+  const { data: userStats } = await getUserStats({ userId: id });
 
   const {
     success: userQuestionsSuccess,
@@ -67,39 +75,37 @@ const ProfilePage = async ({ params, searchParams }: RouteParams) => {
   const { answers, isNext: hasMoreAnswers } = userAnswers!;
   const { tags } = userTopTags!;
 
-  const { _id, name, image, portfolio, location, createdAt, username, bio } = user;
-
   return (
     <>
       <section className="flex flex-col-reverse items-start justify-between sm:flex-row">
         <div className="flex flex-col items-start gap-4 lg:flex-row">
           <UserAvatar
-            id={_id}
-            name={name}
-            imageUrl={image}
+            id={user._id}
+            name={user.name}
+            imageUrl={user.image}
             className="size-[140px] rounded-full object-cover"
             fallbackClassName="text-6xl font-bolder"
           />
 
           <div className="mt-3">
-            <h2 className="h2-bold text-dark100_light900">{name}</h2>
-            <p className="paragraph-regular text-dark200_light800">@{username}</p>
+            <h2 className="h2-bold text-dark100_light900">{user.name}</h2>
+            <p className="paragraph-regular text-dark200_light800">@{user.username}</p>
             <div className="mt-5 flex flex-wrap items-center justify-start gap-5">
-              {portfolio && (
-                <ProfileLink imgUrl={'/icons/link.svg'} href={portfolio} title={'Portfolio'} />
+              {user.portfolio && (
+                <ProfileLink imgUrl={'/icons/link.svg'} href={user.portfolio} title={'Portfolio'} />
               )}
 
-              {location && <ProfileLink imgUrl={'/icons/location.svg'} title={'Location'} />}
+              {user.location && <ProfileLink imgUrl={'/icons/location.svg'} title={'Location'} />}
 
               <ProfileLink
                 imgUrl={'/icons/calendar.svg'}
-                title={`Joined ${new Date(createdAt).toLocaleDateString('en-US', {
+                title={`Joined ${new Date(user.createdAt).toLocaleDateString('en-US', {
                   month: 'long',
                   year: 'numeric',
                 })}`}
               />
             </div>
-            {bio && <p className="mt-8 paragraph-regular text-dark400_light800">{bio}</p>}
+            {user.bio && <p className="mt-8 paragraph-regular text-dark400_light800">{user.bio}</p>}
           </div>
         </div>
 
@@ -115,13 +121,16 @@ const ProfilePage = async ({ params, searchParams }: RouteParams) => {
       </section>
 
       <Stats
-        totalAnswers={totalAnswers}
-        totalQuestions={totalQuestions}
-        badges={{
-          GOLD: 2,
-          SILVER: 5,
-          BRONZE: 10,
-        }}
+        totalAnswers={userStats?.totalAnswers || 0}
+        totalQuestions={userStats?.totalQuestions || 0}
+        badges={
+          userStats?.badges || {
+            GOLD: 0,
+            SILVER: 0,
+            BRONZE: 0,
+          }
+        }
+        reputation={user.reputation || 0}
       />
 
       <section className="mt-10 flex gap-10">
@@ -143,7 +152,11 @@ const ProfilePage = async ({ params, searchParams }: RouteParams) => {
               render={(questions) => (
                 <div className="flex w-full flex-col gap-6">
                   {questions.map((question) => (
-                    <QuestionCard key={question._id} question={question} />
+                    <QuestionCard
+                      key={question._id}
+                      question={question}
+                      showActionBtns={loggedInUser?.user?.id === question.author._id}
+                    />
                   ))}
                 </div>
               )}
@@ -158,13 +171,14 @@ const ProfilePage = async ({ params, searchParams }: RouteParams) => {
               success={userAnswersSuccess}
               error={userAnswersError}
               render={(answers) => (
-                <div className="flex w-full flex-col gap-6">
+                <div className="flex w-full flex-col gap-10">
                   {answers.map((answer) => (
                     <AnswerCard
                       key={answer._id}
                       containerClasses="card-wrapper rounded-[10px] px-7 py-9 sm:px-11"
                       showReadMore
                       answer={answer}
+                      showActionBtns={loggedInUser?.user?.id === answer.author._id}
                     />
                   ))}
                 </div>

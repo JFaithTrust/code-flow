@@ -8,6 +8,7 @@ import { hasVoted } from '@/lib/actions/vote.action';
 import { cn } from '@/lib/utils';
 
 import Preview from '../editor/preview';
+import EditDeleteAction from '../shared/edit-delete-action';
 import UserAvatar from '../shared/user-avatar';
 import Votes from '../shared/votes';
 
@@ -15,17 +16,30 @@ interface AnswerCardProps {
   answer: Answer;
   containerClasses?: string;
   showReadMore?: boolean;
+  showActionBtns?: boolean;
 }
 
-const AnswerCard = ({ answer, containerClasses, showReadMore = false }: AnswerCardProps) => {
+const AnswerCard = ({
+  answer,
+  containerClasses,
+  showReadMore = false,
+  showActionBtns = false,
+}: AnswerCardProps) => {
   const hasVotedPromise = hasVoted({
     targetId: answer._id.toString(),
     targetType: 'answer',
   });
 
   return (
-    <article className={cn('border-b light-border py-10', containerClasses)}>
+    <article className={cn('relative border-b light-border py-10', containerClasses)}>
       <span id={JSON.stringify(answer._id)} className="hash-span" />
+
+      {showActionBtns && (
+        <div className="absolute -top-5 -right-2 flex-center size-9 rounded-full">
+          <EditDeleteAction type="Answer" itemId={answer._id} />
+        </div>
+      )}
+
       <div className="mb-5 flex flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <div className="flex flex-1 items-start gap-1 sm:items-center">
           <UserAvatar

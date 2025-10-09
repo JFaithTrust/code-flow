@@ -2,16 +2,19 @@
 
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 
 import ROUTES from '@/constants/routes';
 import Answer, { IAnswerDocument } from '@/database/answer.model';
 import Question from '@/database/question.model';
+import Vote from '@/database/vote.model';
 import { ActionResponse, ErrorResponse } from '@/types/model';
 
 import action from '../handlers/action';
 import handleError from '../handlers/error';
-import { NotFoundError } from '../http-errors';
-import { CreateAnswerSchema, GetAnswersSchema, GetUserAnswersSchema } from '../validation';
+import { NotFoundError, UnauthorizedError } from '../http-errors';
+import { CreateAnswerSchema, DeleteAnswerSchema, GetAnswersSchema } from '../validation';
+import { createInteraction } from './interaction.action';
 
 export async function getAllAnswers(params: GetAnswerParams): Promise<
   ActionResponse<{
@@ -109,6 +112,15 @@ export async function createAnswer(
     question.answer += 1;
     await question.save({ session });
 
+    after(async () => {
+      await createInteraction({
+        action: 'post',
+        actionId: newAnswer._id.toString(),
+        actionTarget: 'answer',
+        authorId: userId as string,
+      });
+    });
+
     await session.commitTransaction();
 
     revalidatePath(ROUTES.QUESTION(questionId));
@@ -124,36 +136,43 @@ export async function createAnswer(
   }
 }
 
-export async function getUserAnswers(
-  params: GetUserAnswersParams,
-): Promise<ActionResponse<{ answers: Answer[]; isNext: boolean }>> {
-  const validationResult = await action({ params, schema: GetUserAnswersSchema });
+export async function deleteAnswer(params: DeleteAnswerParams): Promise<ActionResponse> {
+  const validationResult = await action({ params, schema: DeleteAnswerSchema, authorize: true });
 
   if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
 
-  const { userId, page = 1, pageSize = 10 } = validationResult.params!;
-
-  const skip = (Number(page) - 1) * Number(pageSize);
-  const limit = Number(pageSize);
+  const { answerId } = validationResult.params!;
+  const { user } = validationResult.session!;
 
   try {
-    const totalAnswers = await Answer.countDocuments({ author: userId });
+    const answer = await Answer.findById(answerId);
 
-    const answers = await Answer.find({ author: userId })
-      .populate('author', '_id name image')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    if (!answer) {
+      throw new NotFoundError('Answer');
+    }
 
-    const isNext = skip + answers.length < totalAnswers;
+    if (answer.author.toString() !== user?.id) {
+      throw new UnauthorizedError();
+    }
 
-    return {
-      success: true,
-      data: {
-        answers,
-        isNext,
-      },
-    };
+    await Question.findByIdAndUpdate(answer.question, { $inc: { answer: -1 } }, { new: true });
+
+    await Vote.deleteMany({ targetId: answer._id, targetType: 'Answer' });
+
+    await Answer.findByIdAndDelete(answerId);
+
+    after(async () => {
+      await createInteraction({
+        action: 'delete',
+        actionId: answerId,
+        actionTarget: 'answer',
+        authorId: user?.id as string,
+      });
+    });
+
+    revalidatePath(`/profile/${user?.id}`);
+
+    return { success: true };
   } catch (error) {
     return handleError(error as Error) as ErrorResponse;
   }

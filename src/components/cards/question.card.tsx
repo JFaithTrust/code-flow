@@ -6,13 +6,20 @@ import Link from 'next/link';
 import ROUTES from '@/constants/routes';
 
 import TagCard from './tag.card';
+import EditDeleteAction from '../shared/edit-delete-action';
 import Metric from '../shared/metric';
 
-const QuestionCard = ({ question }: { question: Question }) => {
+const QuestionCard = ({
+  question,
+  showActionBtns = false,
+}: {
+  question: Question;
+  showActionBtns?: boolean;
+}) => {
   return (
     <div className="rounded-[10px] card-wrapper p-9 sm:px-11">
       <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
-        <div>
+        <div className="flex-1">
           <span className="line-clamp-1 flex subtle-regular text-dark400_light700 sm:hidden">
             {formatDistanceToNow(new Date(question.createdAt), { addSuffix: true })}
           </span>
@@ -23,6 +30,8 @@ const QuestionCard = ({ question }: { question: Question }) => {
             </h3>
           </Link>
         </div>
+
+        {showActionBtns && <EditDeleteAction type="Question" itemId={question._id} />}
       </div>
 
       <div className="mt-3.5 flex w-full flex-wrap gap-2">

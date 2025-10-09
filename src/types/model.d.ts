@@ -84,3 +84,17 @@ type ErrorResponse = ActionResponse<undefined> & { success: false };
 type APIErrorResponse = NextResponse<ErrorResponse>;
 type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
 type ActionResponseType<T = null> = Promise<SuccessResponse<T> | ErrorResponse>;
+
+interface CreateInteractionParams {
+  action: 'view' | 'upvote' | 'downvote' | 'bookmark' | 'post' | 'edit' | 'delete' | 'search';
+  actionId: string;
+  authorId: string;
+  actionTarget: 'question' | 'answer';
+}
+
+interface UpdateReputationParams {
+  interaction: IInteractionDocument;
+  session: mongoose.ClientSession;
+  performedId: string;
+  authorId: string;
+}
