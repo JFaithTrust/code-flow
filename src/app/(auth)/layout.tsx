@@ -1,7 +1,5 @@
 import Image from 'next/image';
 
-import SocialAuthForm from '@/components/forms/social-auth.form';
-
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-auth-light bg-cover bg-center bg-no-repeat px-4 py-10 dark:bg-auth-dark">
@@ -23,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         {children}
 
-        <SocialAuthForm />
+        {/* <SocialAuthForm /> */}
       </section>
     </main>
   );
