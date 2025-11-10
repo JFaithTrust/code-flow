@@ -58,7 +58,10 @@ const SignInForm = () => {
                   type={'text'}
                   placeholder={'jahongir@example.com'}
                   className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 pr-10 paragraph-regular text-dark300_light700 no-focus"
-                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
                 />
               </FormControl>
               <FormMessage />
@@ -78,7 +81,10 @@ const SignInForm = () => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder={'**********'}
                     className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 pr-10 paragraph-regular text-dark300_light700 no-focus"
-                    {...field}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
                   />
                   <button
                     type="button"
