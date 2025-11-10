@@ -60,12 +60,14 @@ const AuthForm = <T extends FieldValues>({
 
   const buttonText = formType === 'SIGN_IN' ? 'Sign In' : 'Sign Up';
 
+  const fields: (keyof T)[] = Object.keys(defaultValues) as (keyof T)[];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="mt-10 space-y-6">
-        {Object.keys(defaultValues).map((field) => (
+        {fields.map((field) => (
           <FormField
-            key={field}
+            key={field as string}
             control={form.control}
             name={field as Path<T>}
             render={({ field }) => (
