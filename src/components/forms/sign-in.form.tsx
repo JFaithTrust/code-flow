@@ -57,8 +57,8 @@ const SignInForm = () => {
                   required
                   type={'text'}
                   placeholder={'jahongir@example.com'}
-                  {...field}
                   className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 pr-10 paragraph-regular text-dark300_light700 no-focus"
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -77,8 +77,8 @@ const SignInForm = () => {
                     required
                     type={showPassword ? 'text' : 'password'}
                     placeholder={'**********'}
-                    {...field}
                     className="min-h-12 rounded-1.5 border light-border-2 background-light900_dark300 pr-10 paragraph-regular text-dark300_light700 no-focus"
+                    {...field}
                   />
                   <button
                     type="button"
