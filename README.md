@@ -4,29 +4,21 @@ Collaborative Q&A platform built with the Next.js App Router, MongoDB, and NextA
 
 ## Table of contents## Table of contents
 
-- [Features](#features)- [Features](#features)
+- [Features](#features)
 
-- [Tech stack](#tech-stack)- [Tech stack](#tech-stack)
+- [Tech stack](#tech-stack)
 
-- [Project structure](#project-structure)- [Project structure](#project-structure)
+- [Project structure](#project-structure)
 
-- [Getting started](#getting-started)- [Getting started](#getting-started)
+- [Available scripts](#available-scripts)
 
-  - [Prerequisites](#prerequisites) - [Prerequisites](#prerequisites)
+- [Core workflows](#core-workflows)
 
-  - [Environment variables](#environment-variables) - [Environment variables](#environment-variables)
+- [Deployment notes](#deployment-notes)
 
-  - [Install and run](#install-and-run) - [Install and run](#install-and-run)
+- [Contributing](#contributing)
 
-- [Available scripts](#available-scripts)- [Available scripts](#available-scripts)
-
-- [Core workflows](#core-workflows)- [Core workflows](#core-workflows)
-
-- [Deployment notes](#deployment-notes)- [Deployment notes](#deployment-notes)
-
-- [Contributing](#contributing)- [Contributing](#contributing)
-
-## Features## Features
+## Features
 
 - Full Q&A workflow: authenticate, compose questions with MDX-powered rich text, publish answers, vote, and bookmark into personal collections.- Q&A workflow: authenticate, ask questions with MDX powered rich text, browse answers, vote, and bookmark into personal collections.
 
@@ -54,149 +46,13 @@ Collaborative Q&A platform built with the Next.js App Router, MongoDB, and NextA
 
 - **Forms & Validation**: React Hook Form, Zod
 
-- **Auth**: NextAuth v5 beta (GitHub, Google, credentials)## Project structure
+- **Auth**: NextAuth v5 beta (GitHub, Google, credentials)
 
-- **Database**: MongoDB with Mongoose ODM```
+- **Database**: MongoDB with Mongoose ODM
 
-- **Logging**: Pino + pino-prettycode-flow/
+- **Logging**: Pino + pino-prettycode-flow
 
-- **Tooling**: ESLint 9, Turbopack, npm scripts├── src/
-
-│ ├── app/ # App Router routes (auth, dashboard, API)
-
-## Project structure│ ├── components/ # Reusable UI, forms, editor integrations
-
-````│ ├── constants/           # Static route, filter, and state definitions
-
-code-flow/│   ├── database/            # Mongoose schemas & models
-
-├── public/                  # Static assets (icons, images, robots.txt)│   ├── lib/                 # Server actions, utilities, API clients
-
-├── src/│   ├── types/               # Shared TypeScript contracts
-
-│   ├── app/                 # App Router routes (auth, root pages, API)│   └── auth.ts              # NextAuth configuration
-
-│   ├── components/          # Reusable UI, forms, editor integrations├── public/                  # Static assets (icons, images, robots.txt)
-
-│   ├── constants/           # Static route, filter, and state definitions├── eslint.config.mjs        # ESLint 9 flat config
-
-│   ├── database/            # Mongoose schemas & models├── next.config.ts           # Next.js configuration (Turbopack enabled)
-
-│   ├── lib/                 # Server actions, utilities, API clients├── postcss.config.mjs       # Tailwind/PostCSS pipeline
-
-│   ├── types/               # Shared TypeScript contracts
-
-│   └── auth.ts              # NextAuth configuration### Install and run
-
-├── eslint.config.mjs        # ESLint 9 flat config
-
-├── next.config.ts           # Next.js configuration (Turbopack enabled)```bash
-
-├── postcss.config.mjs       # Tailwind/PostCSS pipeline# Install dependencies
-
-├── tsconfig.json            # TypeScript compiler settingsnpm install
-
-└── package.json             # Scripts and dependency manifest
-
-```# Start the dev server (http://localhost:3000)
-
-npm run dev
-
-## Getting started
-
-# Run lint checks (optional but recommended)
-
-### Prerequisitesnpm run lint
-
-- Node.js 20+ (Next.js 15 and React 19 require modern Node versions)```
-
-- npm 10+ (or yarn/pnpm/bun if you prefer, adjust commands accordingly)
-
-- MongoDB instance (Atlas or local) reachable from your dev machineBuild and launch production assets locally:
-
-- RapidAPI account with access to JSearch (for job listings)
-
-- OAuth apps for GitHub and Google if you plan to support social sign-in```bash
-
-npm run build
-
-### Environment variablesnpm run start
-
-Create a `.env.local` file at the repository root and provide the following values:```
-
-├── tsconfig.json            # TypeScript compiler settings
-
-```ini└── package.json             # Scripts and dependency manifest
-
-# Application URLs```
-
-NEXTAUTH_URL=http://localhost:3000
-
-NEXT_PUBLIC_BASE_URL=http://localhost:3000/api## Getting started
-
-
-
-# Database### Prerequisites
-
-NEXT_PUBLIC_MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<database>- Node.js 20+ (Next.js 15 and React 19 require modern Node versions)
-
-- npm 10+ (or yarn/pnpm/bun if you prefer, update commands accordingly)
-
-# NextAuth- MongoDB instance (Atlas or local) reachable from your dev machine
-
-NEXTAUTH_SECRET=replace-with-long-random-string- RapidAPI account with access to JSearch (for job listings)
-
-AUTH_GITHUB_ID=your-github-oauth-client-id- OAuth apps for GitHub and Google if you plan to support social sign-in
-
-AUTH_GITHUB_SECRET=your-github-oauth-client-secret
-
-AUTH_GOOGLE_ID=your-google-oauth-client-id### Environment variables
-
-AUTH_GOOGLE_SECRET=your-google-oauth-client-secretCreate a `.env.local` file at the repository root and provide the following values:
-
-
-
-# Third-party APIs```ini
-
-NEXT_PUBLIC_RAPID_API_KEY=your-rapidapi-key# Application URLs
-
-NEXTAUTH_URL=http://localhost:3000
-
-# Optional logging tweaksNEXT_PUBLIC_BASE_URL=http://localhost:3000/api
-
-LOG_LEVEL=info
-
-```# Database
-
-NEXT_PUBLIC_MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<database>
-
-> Tip: when deploying, mirror these variables in your hosting provider (Vercel, Render, Docker secrets, etc.).
-
-# NextAuth
-
-### Install and runNEXTAUTH_SECRET=replace-with-long-random-string
-
-AUTH_GITHUB_ID=your-github-oauth-client-id
-
-```bashAUTH_GITHUB_SECRET=your-github-oauth-client-secret
-
-# Install dependenciesAUTH_GOOGLE_ID=your-google-oauth-client-id
-
-npm installAUTH_GOOGLE_SECRET=your-google-oauth-client-secret
-
-
-
-# Start the dev server (http://localhost:3000)# Third-party APIs
-
-npm run devNEXT_PUBLIC_RAPID_API_KEY=your-rapidapi-key
-
-
-
-# Run lint checks (optional but recommended)# Optional logging tweaks
-
-npm run lintLOG_LEVEL=info
-
-````
+- **Tooling**: ESLint 9, Turbopack
 
 Build and launch production assets locally:> Tip: when deploying, mirror these variables in your hosting provider (Vercel, Docker secrets, etc.).
 
