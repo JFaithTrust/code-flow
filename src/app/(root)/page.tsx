@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 
 import { HomePageFilters } from '@/constants/filters';
@@ -12,6 +13,12 @@ import HomeFilter from '@/components/shared/home-filter';
 import LocalSearch from '@/components/shared/locale-search';
 import Pagination from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
+
+export const metadata: Metadata = {
+  title: 'Dev Overflow | Home',
+  description:
+    'Discover different programming questions and answers with recommendations from the community.',
+};
 
 export default async function Home({ searchParams }: RouteParams) {
   const { page, pageSize, query, filter } = await searchParams;

@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 
 import { formatDistanceToNowStrict } from 'date-fns';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -24,6 +25,19 @@ import Pagination from '@/components/shared/pagination';
 import SaveQuestion from '@/components/shared/save-question';
 import UserAvatar from '@/components/shared/user-avatar';
 import Votes from '@/components/shared/votes';
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+
+  const { success, data: question } = await getQuestionById({ questionId: id });
+
+  if (!success || !question) return {};
+
+  return {
+    title: question.title,
+    description: question.content.slice(0, 100),
+  };
+}
 
 const QuestionDetailPage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

@@ -1,12 +1,14 @@
+'use client';
+
 import React, { useState } from 'react';
 
-import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
-import { Eye, EyeOff } from 'lucide-react'; // Assuming lucide-react is installed
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DefaultValues, FieldValues, Path, SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z, ZodType } from 'zod';
+import { ZodType } from 'zod';
 
 import ROUTES from '@/constants/routes';
 import { ActionResponse } from '@/types/model';
@@ -24,7 +26,7 @@ import { Input } from '@/components/ui/input';
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
-  defaultValues: T;
+  defaultValues: DefaultValues<T>;
   formType: 'SIGN_IN' | 'SIGN_UP';
   onSubmit: (data: T) => Promise<ActionResponse>;
 }
@@ -38,9 +40,10 @@ const AuthForm = <T extends FieldValues>({
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: standardSchemaResolver(schema),
-    defaultValues: defaultValues as DefaultValues<T>,
+  const form = useForm<T>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema as ZodType<T, any>),
+    defaultValues,
   });
 
   const handleSubmit: SubmitHandler<T> = async (data) => {

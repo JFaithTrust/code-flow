@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { auth } from '@/auth';
 
 import MobileNavigation from './mobile.navigation';
+import GlobalSearch from '../shared/global-search-filter';
 import { ModeToggle } from '../shared/mode-toggle';
 import UserAvatar from '../shared/user-avatar';
 
@@ -20,7 +21,7 @@ const Navbar = async () => {
         </p>
       </Link>
 
-      <p>Global Search</p>
+      <GlobalSearch />
 
       <div className="flex-between gap-5">
         <ModeToggle />

@@ -1,5 +1,7 @@
 'use server';
 
+import { cache } from 'react';
+
 import mongoose, { FilterQuery, Types } from 'mongoose';
 import { revalidatePath } from 'next/cache';
 import { after } from 'next/server';
@@ -174,27 +176,27 @@ export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
   }
 }
 
-export async function getQuestionById(
-  params: GetQuestionsParams,
-): Promise<ActionResponse<Question>> {
-  const validationResult = await action({ params, schema: GetQuestionsSchema });
+export const getQuestionById = cache(
+  async (params: GetQuestionsParams): Promise<ActionResponse<Question>> => {
+    const validationResult = await action({ params, schema: GetQuestionsSchema });
 
-  if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
+    if (validationResult instanceof Error) return handleError(validationResult) as ErrorResponse;
 
-  const { questionId } = validationResult.params!;
+    const { questionId } = validationResult.params!;
 
-  try {
-    const question = await Question.findById(questionId)
-      .populate('tags', '_id name')
-      .populate('author', 'name image');
+    try {
+      const question = await Question.findById(questionId)
+        .populate('tags', '_id name')
+        .populate('author', 'name image');
 
-    if (!question) throw new NotFoundError('Question');
+      if (!question) throw new NotFoundError('Question');
 
-    return { success: true, data: JSON.parse(JSON.stringify(question)) };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
+      return { success: true, data: JSON.parse(JSON.stringify(question)) };
+    } catch (error) {
+      return handleError(error) as ErrorResponse;
+    }
+  },
+);
 
 export async function createQuestion(
   params: CreateQuestionParams,
