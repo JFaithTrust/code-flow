@@ -15,7 +15,7 @@ import Pagination from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Dev Overflow | Home',
+  title: 'Code Flow | Home',
   description:
     'Discover different programming questions and answers with recommendations from the community.',
 };
